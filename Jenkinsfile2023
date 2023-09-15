@@ -1,0 +1,30 @@
+node{ 
+    def jenkinsmaven = tool name: 'maven3.9.4'
+ stage('1 git clone'){
+ git "https://github.com/Zion-Tech-FinTech/maven-web-application "
+}
+stage('2MavenBuild'){
+    bat "${jenkinsmaven}/bin/mvn package"
+}
+stage('3unit testing'){
+    bat "${jenkinsmaven}/bin/mvn sonar:sonar"
+}
+stage('4backing up'){
+    bat "${jenkinsmaven}/bin/mvn deploy"
+}
+stage('5deploytoUAT'){
+ deploy adapters: [tomcat9(credentialsId: 'tompass', path: '', url: 'http://localhost:8080/')], contextPath: null, war: 'target/*.war' 
+}
+stage('6manualapproval'){
+   timeout(time:2, unit:'DAYS'){
+    input message:'PLEASE CLIENT WE NEED YOUR MANUAL APPROVAL OF END PRODUCT'
+   } } 
+   stage('7deploytoProd'){
+ deploy adapters: [tomcat9(credentialsId: 'tompass', path: '', url: 'http://localhost:8080/')], contextPath: null, war: 'target/*.war' 
+}
+stage('8Emailnotification'){
+    emailext body: '''hello deveolers and hello team
+project it done and weldone to all your effortless strength and time you put in.''', recipientProviders: [contributor(), upstreamDevelopers(), developers()], subject: 'build status', to: 'kwaadella@gmail.com'
+}
+
+}
